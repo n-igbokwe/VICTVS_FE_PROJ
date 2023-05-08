@@ -23,7 +23,7 @@ export function DetailsScreen({ route }) {
         setLng(datapoint.longitude);
       })
       .catch((error) => {
-        console.log(error, 'newERRROROROO');
+        console.log(error);
       });
   }, [itemId]);
 

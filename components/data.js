@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { useState, useEffect } from 'react';
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
@@ -14,34 +14,28 @@ export function Datalist() {
     const [location, setLocation] = useState()
     const [name, setName] = useState()
     const navigation = useNavigation();
-    const [isLocationOpen, setIsLocationOpen] = useState(false); 
+    const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [isNameOpen, setIsNameOpen] = useState(false);
-  
+    const [showDropdowns, setShowDropdowns] = useState(false)
 
     function openLocation() {
       setIsLocationOpen(true);
       setIsNameOpen(false);
     }
-    
     function closeLocation() {
       setIsLocationOpen(false);
     }
-  
     function openName() {
       setIsNameOpen(true);
       setIsLocationOpen(false);
-
     }
-    
     function closeName() {
       setIsNameOpen(false);
     }
-
     function reset() {
         setLocation(null);
         setName(null);
       }
-
       useEffect(() => {
         let url = `https://victvs.onrender.com/api/data?order=${orderBy}&sort_by=${sortBy}`;
         if (location) {
@@ -50,7 +44,6 @@ export function Datalist() {
         if (name) {
           url += `&CandidateName=${name.label}`;
         }
-      
         axios.get(url)
           .then((response) => {
             console.log(url)
@@ -65,18 +58,25 @@ export function Datalist() {
             });
             setLocationFilter([...new Set(locationArr)]);
             setNameFilter([...new Set(nameArr)]);
+            console.log(nameArr)
           })
           .catch((error) => {
             console.log(error, "<---CAUGHT ERROR");
           });
       }, [sortBy, orderBy, location, name]);
-  
     const handlePress = (id) => {
       navigation.navigate('DetailsScreen', { itemId: id });
     };
-    
     return (
-      <View>
+      <SafeAreaView style={styles.safeContainer}>
+        <View stlye={styles.buttonsContainer}>
+            <TouchableOpacity style={styles.button} onPress={() => setShowDropdowns(!showDropdowns)}>
+                <Text style={styles.buttonText}>                                         Show Filters</Text>
+            </TouchableOpacity>
+        </View>
+        <View style={{elevation: 11, zIndex: 100}}>
+        <View style={{display : showDropdowns ? 'flex' : 'none'}}>
+      
         <DropDownPicker
   items={locationFilter.map((location) => ({ label: location, value: location }))}
   value={location}
@@ -85,10 +85,14 @@ export function Datalist() {
   open={isLocationOpen}
   onOpen={openLocation}
   onClose={closeLocation}
-  zIndex={3000}
-  zIndexInverse={1000}
+  zIndex={10}
+  zIndexInverse={8}
+  elevation={11}
 />
-  
+</View>
+</View>
+<View style={{elevation: 10, zIndex: 99}}>
+<View style={{display : showDropdowns ? 'flex' : 'none'}}>
 <DropDownPicker
   items={nameFilter.map((name) => ({ label: name, value: name }))}
   value={name}
@@ -97,10 +101,15 @@ export function Datalist() {
   open={isNameOpen}
   onOpen={openName}
   onClose={closeName}
-  zIndex={1000}
-  zIndexInverse={3000}
-
+  zIndex={9}
+  zIndexInverse={8}
+  elevation={10}
 />
+</View>
+</View>
+
+    
+<View style={styles.index}>
 <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.button} onPress={() => setOrderBy('asc')}>
           <Text style={styles.buttonText}>date ascending</Text>
@@ -109,17 +118,14 @@ export function Datalist() {
           <Text style={styles.buttonText}>date descending</Text>
         </TouchableOpacity>
     </View>
-
    <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={reset}>
           <Text style={styles.buttonText}>                                       Reset filters</Text>
         </TouchableOpacity>
       </View>
-
-      
-
+</View>
       {data !== null ? (
-        <ScrollView style={{height:600}}>
+        <ScrollView style={{}}>
           {data.data.map((item) => (
             <TouchableOpacity key={item.id} style={styles.itemContainer} onPress={() => handlePress(item.id)}>
               <View>
@@ -133,10 +139,9 @@ export function Datalist() {
       ) : (
         <Text>Loading...</Text>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -150,6 +155,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginVertical: 10,
+        zIndex: 1,
+        elevation: 1,
     },
     label: {
         fontSize: 16,
@@ -162,11 +169,13 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 20,
         margin: 5,
+        zIndex: 1
     },
     buttonText: {
         color: '#fff',
         fontSize: 14,
         fontWeight: 'normal',
+        zIndex: 1
     },
     itemContainer: {
         flexDirection: 'row',
@@ -184,5 +193,8 @@ const styles = StyleSheet.create({
     },
     itemDescription: {
         fontSize: 16,
+    },
+    safeContainer: {
+        flex: 1
     },
 });
